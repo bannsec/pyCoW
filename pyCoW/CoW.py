@@ -96,7 +96,7 @@ class CoW(object):
         value = copy(value)
 
         # Writing callback value so we can be notified if this object updates in place.
-        if type(value) is ProxyList:
+        if type(value) in [ProxyList, ProxySet]:
             value._flyweight_cb_func = lambda value: self.__setattr__(key, value)
 
         return value
