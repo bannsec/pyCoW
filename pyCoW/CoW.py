@@ -27,21 +27,16 @@ via the attribute.
 """
 
 import weakref
+from copy import copy
 
 #
 # Some basic proxying
 #
 
 class ProxyStr(str):
-    # Not copying since we're proxying
-    def __copy__(self):
-        return self
+    pass
 
 class ProxyList(list):
-    # Not copying since we're proxying
-    def __copy__(self):
-        return self
-
     def __hash__(self):
         return hash(tuple(self))
 
@@ -49,8 +44,14 @@ class ProxyList(list):
 class ProxyTuple(ProxyList):
     def __init__(self, tup):
         # Turning into a list so we can weakref
-        #return super().__init__(list(tup))
         return super().__init__(tup)
+
+    def __eq__(self, obj):
+        """Pretending to be a tuple..."""
+        return tuple(self) == obj
+
+    def __hash__(self):
+        return hash(tuple(self))
 
 class ProxySet(set):
     def __hash__(self):
@@ -127,8 +128,13 @@ class CoW(object):
         return super().__setattr__(key, value)
 
     def __getattribute__(self, key):
-        value = super().__getattribute__(key)
-        return unproxify(value)
+        # Don't proxy our own stuff
+        if key in ["_flyweight_ignored_types","_flyweight_cache"]:
+            return super().__getattribute__(key)
+
+        return copy(super().__getattribute__(key))
+        #value = super().__getattribute__(key)
+        #return unproxify(value)
 
     def __copy__(self):
         """Perform fast copy of attribute pointers in self. Note: This assumes that you are not doing anything aside from copying variables in your __init__. Meaning, if you end up creating new custom objects, connecting to databases, etc, this will not work for you. You can override this with your own copy however."""
