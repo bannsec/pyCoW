@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/bannsec/pyCoW.svg?branch=master)](https://travis-ci.org/bannsec/pyCoW)
+[![Coverage Status](https://coveralls.io/repos/github/bannsec/pyCoW/badge.svg?branch=master)](https://coveralls.io/github/bannsec/pyCoW?branch=master)
+
 # Overview
 This is an attempt at implementing a generic Copy-on-Write base class for python.
 
