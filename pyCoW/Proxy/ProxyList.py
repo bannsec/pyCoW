@@ -27,3 +27,7 @@ class ProxyList(list):
 
         # Proxy this call
         return lambda *args, **kwargs: list_do_generic_call(self, *args, **kwargs, CoWProxMethodName=key)
+
+    def __setitem__(self, *args, **kwargs):
+        super().__setitem__(*args, **kwargs)
+        self._flyweight_cb_func(self)

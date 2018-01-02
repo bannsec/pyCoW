@@ -1,6 +1,6 @@
 
- - Handle list getitem/setitem
-  - This doesn't work currently: t.l[2] = 5
+ - [DONE] Handle list getitem/setitem
+  - [DONE] This doesn't work currently: t.l[2] = 5
  - [DONE] Move Proxy Vars into their own files to keep things cleaner
  - Integrate tests into Travis
   - Update README.md with badge
