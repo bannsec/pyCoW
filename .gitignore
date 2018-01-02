@@ -1,0 +1,9 @@
+.cache/
+.coverage
+*.swp
+htmlcov
+*.pyc
+test
+docs/_build
+*.egg-info/
+.eggs/
