@@ -1,9 +1,33 @@
 from pyCoW import *
 from copy import copy
+import pytest
 
 class Test(CoW):
     pass
 
+def test_tuple_setitem_error():
+    t = Test()
+
+    t.l = (1,2,3,4,1,1)
+
+    with pytest.raises(TypeError):
+        t.l[0] = 1
+
+def test_tuple_index():
+    t = Test()
+
+    t.l = (1,2,3,4,1,1)
+    assert t.l == (1,2,3,4,1,1)
+    assert len(t._flyweight_cache[ProxyTuple]) == 1
+    assert t.l.index(4) == 3
+
+def test_tuple_count():
+    t = Test()
+
+    t.l = (1,2,3,4,1,1)
+    assert t.l == (1,2,3,4,1,1)
+    assert len(t._flyweight_cache[ProxyTuple]) == 1
+    assert t.l.count(1) == 3
 
 def test_tuple_basic():
     t = Test()
