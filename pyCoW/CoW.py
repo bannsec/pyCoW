@@ -26,67 +26,10 @@ import weakref
 from copy import copy
 import types
 
-#
-# Some basic proxying
-#
+# Import our proxies
+from .Proxy import ProxyStr, ProxyList, ProxyTuple, ProxySet
 
-# Implementing __copy__ on each as it's faster than the normal copy method.
-
-class ProxyStr(str):
-    def __copy__(self):
-        return ProxyStr(self)
-
-# Things list class does in-place that we need to watch out for
-proxy_list_inplace = ["append", "clear", "extend", "insert", "pop", "remove", "reverse", "sort"]
-
-def list_do_generic_call(self, *args, **kwargs):
-    # Run this call in-place
-    method_name = kwargs.pop('CoWProxMethodName')
-    ret = getattr(super(type(self), self), method_name)(*args, **kwargs)
-
-    # Call our cb function
-    self._flyweight_cb_func(self)
-
-    # Return any value that might be returned
-    return ret
-
-class ProxyList(list):
-    def __hash__(self):
-        return hash(tuple(self))
-
-    def __copy__(self):
-        return ProxyList(self)
-    
-    def __getattribute__(self, key):
-        # If we don't need to proxy this call, just do it.
-        if key not in proxy_list_inplace:
-            return super().__getattribute__(key)
-
-        # Proxy this call
-        return lambda *args, **kwargs: list_do_generic_call(self, *args, **kwargs, CoWProxMethodName=key)
-
-# Tuple cannot directly be weak referenced... Need some magic.
-class ProxyTuple(ProxyList):
-    def __init__(self, tup):
-        # Turning into a list so we can weakref
-        return super().__init__(tup)
-
-    def __eq__(self, obj):
-        """Pretending to be a tuple..."""
-        return tuple(self) == obj
-
-    def __hash__(self):
-        return hash(tuple(self))
-
-    def __copy__(self):
-        return ProxyTuple(self)
-
-class ProxySet(set):
-    def __hash__(self):
-        return hash(tuple(self))
-
-    def __copy__(self):
-        return ProxySet(self)
+# Implementing __copy__ on each Proxy as it's faster than the normal copy method.
 
 def proxify(value):
     """Wrap the value in a proxy shell if need be. Returns the object or the proxy object."""
@@ -105,27 +48,12 @@ def proxify(value):
 
     return value
 
-def unproxify(value):
-    """Remove the proxy layer. Returns the object."""
-    if type(value) is ProxyStr:
-        value = str(value)
-
-    elif type(value) is ProxyList:
-        value = list(value)
-
-    elif type(value) is ProxyTuple:
-        value = tuple(value)
-
-    elif type(value) is ProxySet:
-        value = set(value)
-
-    return value
-
 # Thing to explicitly not try to flyweight
 flyweight_ignored_keys = ["_flyweight_cache","_flyweight_cb_func"]
 flyweight_ignored_types = [int, float, type(None), bool]
 
 class CoW(object):
+
     # Using weakref to allow garbage collection
     # dict[<var_type>][__hash__]
     # TODO: pypy doesn't delete right away... might be an issue
@@ -196,7 +124,6 @@ class CoW(object):
 
         # If no slots, use vars
         return hash(tuple(vars(self).values()))
-
 
 class Test(CoW):
     pass
