@@ -1,0 +1,16 @@
+language: python
+  python:
+    - 3.6
+    - 3.5
+    - 3.4
+    - 3.3
+    - 3.2
+    - 3.1
+    - 3.0
+  install:
+    - pip install .[dev]
+  script:
+    - pytest && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi
+  env:
+    global:
+      secure: GPNqFKW/qmgxWYBiR3k06pKx62B03N2SZyJJYO3zscZejndP4OaaNhRovGQHQtCvPdN9PWahcTaiqkkSMelsQ3kOaDc1bZzDJhHSrc/YLm4+RfxDUC4N/lx5WmwQTK6RU8N+UQCcQa00WUpQ2IZVpufLH0wyevpxYB/6pNMUkxHBHG4aUzi2kuz9hfQx3mAURdquj883ImtLxbiR57Et86NPyUddE0QbD9Pipz06hG6vKJ8E1VHZutHJfycOE/e16Xt5M18xdon6ZZsa0cOTqvijjHx+h0taJlEpO7FWZTOVl4iusdh0sYz0gnOno3JoLjLqtRhgxEwS6yNxF8ujd33NanxeC+7n8dUNaIJWDhyUUl4OuUwnkPiG880UYTJKeZJWM7mer0NflVvq8MehHYWmjr4T1dEMXzWvH7vggrbfUyGFhUM+T7mpbSLfz+9IBixdAARv159HqzVfs7iLLEF94mQBqhMMo84xn5Ou+xDjStkMDxuuUZRm1vQPjHutcWmBx0sVlfGk2PrWVcqULAINq4LwI73MNmOMMpJlEd1pBjiKjZVKhGgd6yp5BlI9Zv6sE6c+N0b5v5bdYQJqB1h/qvuCySreetxAFFpqfqSAeeEuDe8dGrlzXFfeVsgsjmH9S9xnO9ii8/TSxs2W6wPmsEjoLDFlFQ9T9XQpjNk=
