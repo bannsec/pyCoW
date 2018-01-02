@@ -9,7 +9,7 @@ here = path.abspath(path.dirname(__file__))
 long_description = "See website for more info."
 dev_tools = ['pytest','python-coveralls','coverage','pytest-cov','pytest-xdist','ipython']
 setup(
-    name='CoW',
+    name='pyCoW',
     version='0.0.1',
     description='Copy-On-Write Mixin Base Class.',
     long_description=long_description,
