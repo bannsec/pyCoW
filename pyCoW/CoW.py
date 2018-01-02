@@ -20,25 +20,50 @@ override the __copy__ method to copy the pointers into a new object instead of
 fully traversing get/set. This allows me to not have to implement custom copy
 methods per each class, and instead utilize the duck typing of python to make
 this all transparent.
-
-NOTE: Due to how I'm type changing under the covers, calling "vars" will lie to
-you sometimes. To get the real value of that variable, you will need to get it
-via the attribute.
 """
 
 import weakref
 from copy import copy
+import types
 
 #
 # Some basic proxying
 #
 
+# Implementing __copy__ on each as it's faster than the normal copy method.
+
 class ProxyStr(str):
-    pass
+    def __copy__(self):
+        return ProxyStr(self)
+
+# Things list class does in-place that we need to watch out for
+proxy_list_inplace = ["append", "clear", "extend", "insert", "pop", "remove", "reverse", "sort"]
+
+def list_do_generic_call(self, *args, **kwargs):
+    # Run this call in-place
+    method_name = kwargs.pop('CoWProxMethodName')
+    ret = getattr(super(type(self), self), method_name)(*args, **kwargs)
+
+    # Call our cb function
+    self._flyweight_cb_func(self)
+
+    # Return any value that might be returned
+    return ret
 
 class ProxyList(list):
     def __hash__(self):
         return hash(tuple(self))
+
+    def __copy__(self):
+        return ProxyList(self)
+    
+    def __getattribute__(self, key):
+        # If we don't need to proxy this call, just do it.
+        if key not in proxy_list_inplace:
+            return super().__getattribute__(key)
+
+        # Proxy this call
+        return lambda *args, **kwargs: list_do_generic_call(self, *args, **kwargs, CoWProxMethodName=key)
 
 # Tuple cannot directly be weak referenced... Need some magic.
 class ProxyTuple(ProxyList):
@@ -53,9 +78,15 @@ class ProxyTuple(ProxyList):
     def __hash__(self):
         return hash(tuple(self))
 
+    def __copy__(self):
+        return ProxyTuple(self)
+
 class ProxySet(set):
     def __hash__(self):
         return hash(tuple(self))
+
+    def __copy__(self):
+        return ProxySet(self)
 
 def proxify(value):
     """Wrap the value in a proxy shell if need be. Returns the object or the proxy object."""
@@ -90,6 +121,9 @@ def unproxify(value):
 
     return value
 
+# Thing to explicitly not try to flyweight
+flyweight_ignored_keys = ["_flyweight_cache","_flyweight_cb_func"]
+flyweight_ignored_types = [int, float, type(None), bool]
 
 class CoW(object):
     # Using weakref to allow garbage collection
@@ -97,19 +131,13 @@ class CoW(object):
     # TODO: pypy doesn't delete right away... might be an issue
     _flyweight_cache = {}
 
-    # Types we don't want to cache
-    _flyweight_ignored_types = [int, float, type(None), bool]
-
     def __setattr__(self, key, value):
 
         # Standardize the value up front
         value = proxify(value)
 
-        # Save off the type of this attr
-        #super().__setattr__("__{key:s}_type".format(key=key), type(value))
-
         # Non-flyweight classes
-        if type(value) in self._flyweight_ignored_types:
+        if type(value) in flyweight_ignored_types or value in flyweight_ignored_keys:
             return super().__setattr__(key, value)
 
         # Make sure the type is in our cache
@@ -128,13 +156,22 @@ class CoW(object):
         return super().__setattr__(key, value)
 
     def __getattribute__(self, key):
-        # Don't proxy our own stuff
-        if key in ["_flyweight_ignored_types","_flyweight_cache"]:
-            return super().__getattribute__(key)
+        # Grab the value
+        value = super().__getattribute__(key)
 
-        return copy(super().__getattribute__(key))
-        #value = super().__getattribute__(key)
-        #return unproxify(value)
+        # Don't proxy our own stuff
+        # If this is a function, don't try to copy it
+        if key in flyweight_ignored_keys or type(value) in [types.BuiltinFunctionType, types.MethodType, types.FunctionType]:
+            return value
+
+        # Returning copies so we can Copy on Write.
+        value = copy(value)
+
+        # Writing callback value so we can be notified if this object updates in place.
+        if type(value) is ProxyList:
+            value._flyweight_cb_func = lambda value: self.__setattr__(key, value)
+
+        return value
 
     def __copy__(self):
         """Perform fast copy of attribute pointers in self. Note: This assumes that you are not doing anything aside from copying variables in your __init__. Meaning, if you end up creating new custom objects, connecting to databases, etc, this will not work for you. You can override this with your own copy however."""
