@@ -1,7 +1,6 @@
 
-def list_do_generic_call(self, *args, **kwargs):
+def list_do_generic_call(self, method_name, *args, **kwargs):
     # Run this call in-place
-    method_name = kwargs.pop('CoWProxMethodName')
     ret = getattr(super(type(self), self), method_name)(*args, **kwargs)
 
     # Call our cb function

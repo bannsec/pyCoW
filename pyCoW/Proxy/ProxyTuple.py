@@ -15,3 +15,7 @@ class ProxyTuple(ProxyList):
 
     def __copy__(self):
         return ProxyTuple(self)
+
+    def __setitem__(self, *args, **kwargs):
+        raise TypeError("'tuple' object does not support item assignment")
+

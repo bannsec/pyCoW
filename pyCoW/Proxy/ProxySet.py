@@ -15,6 +15,6 @@ class ProxySet(set):
             return super().__getattribute__(key)
 
         # Proxy this call
-        return lambda *args, **kwargs: list_do_generic_call(self, *args, **kwargs, CoWProxMethodName=key)
+        return lambda *args, **kwargs: list_do_generic_call(self, key, *args, **kwargs)
 
 from . import list_do_generic_call

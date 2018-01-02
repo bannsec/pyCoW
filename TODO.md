@@ -1,15 +1,11 @@
 
- - [DONE] Handle list getitem/setitem
-  - [DONE] This doesn't work currently: t.l[2] = 5
- - [DONE] Move Proxy Vars into their own files to keep things cleaner
+ - Un-implement list functions from tuple...
+  - Shouldn't be able to do "remove" from tuple, for instance.
  - Integrate tests into Travis
   - Update README.md with badge
  - Integrate coveralls results into coveralls.io
   - Update README.md with badge
  - Proper documentation
- - In-place updates won't register at the moment...
-  - [DONE] list methods are mostly in place
-  - set methods are mostly in place
  - Deal with dict
   - create base class
   - dict methods for update and such need special care

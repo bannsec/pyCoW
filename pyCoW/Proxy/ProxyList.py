@@ -15,7 +15,7 @@ class ProxyList(list):
             return super().__getattribute__(key)
 
         # Proxy this call
-        return lambda *args, **kwargs: list_do_generic_call(self, *args, **kwargs, CoWProxMethodName=key)
+        return lambda *args, **kwargs: list_do_generic_call(self, key, *args, **kwargs)
 
     def __setitem__(self, *args, **kwargs):
         super().__setitem__(*args, **kwargs)
