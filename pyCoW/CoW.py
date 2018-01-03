@@ -97,9 +97,6 @@ class CoW(object):
         if key in flyweight_ignored_keys or type(value) in [types.BuiltinFunctionType, types.MethodType, types.FunctionType]:
             return value
 
-        # Returning copies so we can Copy on Write.
-        value = copy(value)
-
         # Writing callback value so we can be notified if this object updates in place.
         if type(value) in [ProxyList, ProxySet, ProxyDict]:
 
@@ -134,12 +131,16 @@ class CoW(object):
         return hash(tuple(vars(self).values()))
 
     # Extending this for the sake of inheriting CoW
-    def __setitem__(self, *args, **kwargs):
+    def __setitem__(self, key, item):
+        # Just-in-time copy
+        my_copy = copy(self)
+
         # Set it
-        super(type(self), self).__setitem__(*args, **kwargs)
+        super(type(my_copy), my_copy).__setitem__(key, item)
+
         # Notify anyone who cares
         for func in self._flyweight_cb_func:
-            func(self)
+            func(my_copy)
 
 class Test(CoW):
     pass

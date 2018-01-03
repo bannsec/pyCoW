@@ -28,4 +28,9 @@ class ProxyList(list, CoW):
         # Letting CoW get first shot at this
         return CoW.__setitem__(self, *args, **kwargs)
 
+    def __iadd__(self, *args, **kwargs):
+        # Can't overload special methods through getattribute, so just proxying here.
+        return list_do_generic_call(self, "__iadd__", *args, **kwargs)
+
+
 from . import list_do_generic_call
