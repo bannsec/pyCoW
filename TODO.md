@@ -1,4 +1,9 @@
 
+ - Ensure I'm testing all base functions for the classes
+  - [DONE] dict
+  - list
+  - [DONE] tuple
+  - set
  - Un-implement list functions from tuple...
   - Shouldn't be able to do "remove" from tuple, for instance.
  - Integrate tests into Travis

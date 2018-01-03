@@ -27,7 +27,7 @@ from copy import copy
 import types
 
 # Import our proxies
-from .Proxy import ProxyStr, ProxyList, ProxyTuple, ProxySet
+from .Proxy import ProxyStr, ProxyList, ProxyTuple, ProxySet, ProxyDict
 
 # Implementing __copy__ on each Proxy as it's faster than the normal copy method.
 
@@ -45,6 +45,9 @@ def proxify(value):
 
     elif type(value) is set:
         value = ProxySet(value)
+
+    elif type(value) is dict:
+        value = ProxyDict(value)
 
     return value
 
@@ -96,7 +99,7 @@ class CoW(object):
         value = copy(value)
 
         # Writing callback value so we can be notified if this object updates in place.
-        if type(value) in [ProxyList, ProxySet]:
+        if type(value) in [ProxyList, ProxySet, ProxyDict]:
             value._flyweight_cb_func = lambda value: self.__setattr__(key, value)
 
         return value
