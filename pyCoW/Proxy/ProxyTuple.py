@@ -1,7 +1,8 @@
 from .ProxyList import ProxyList
+from ..CoW import CoW
 
 # Tuple cannot directly be weak referenced... Need some magic.
-class ProxyTuple(ProxyList):
+class ProxyTuple(ProxyList, CoW):
     def __init__(self, tup):
         # Turning into a list so we can weakref
         return super().__init__(tup)

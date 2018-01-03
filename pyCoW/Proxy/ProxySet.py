@@ -1,8 +1,14 @@
 
+from ..CoW import CoW
+
 # Things set class does in-place that we need to watch out for
 proxy_list_inplace = ["add", "clear", "difference_update", "discard", "intersection_update", "pop", "remove", "symmetric_difference_update", "update"]
 
-class ProxySet(set):
+class ProxySet(set, CoW):
+    def __init__(self, *args, **kwargs):
+        set.__init__(self, *args, **kwargs)
+        CoW.__init__(self, *args, **kwargs)
+
     def __hash__(self):
         return hash(tuple(self))
 

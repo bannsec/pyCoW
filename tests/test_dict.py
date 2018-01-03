@@ -1,11 +1,11 @@
-from pyCoW import *
+from pyCoW import CoW, ProxyDict
 from copy import copy
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
 def test_dict_values():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -18,7 +18,7 @@ def test_dict_values():
     assert list(t.d.values()) == ['test', 'test2']
 
 def test_dict_update():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -33,7 +33,7 @@ def test_dict_update():
     assert t2.d == d
 
 def test_dict_setdefault():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -50,7 +50,7 @@ def test_dict_setdefault():
 
 
 def test_dict_popitem():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -66,7 +66,7 @@ def test_dict_popitem():
     assert t2.d == d
 
 def test_dict_pop():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -80,7 +80,7 @@ def test_dict_pop():
     assert t.d == {2: 'test2'}
 
 def test_dict_keys():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -93,7 +93,7 @@ def test_dict_keys():
     assert t.d.keys() == set([1, 2])
 
 def test_dict_items():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -106,7 +106,7 @@ def test_dict_items():
     assert t.d.items() == set([(1, 'test'), (2, 'test2')])
 
 def test_dict_get():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -119,7 +119,7 @@ def test_dict_get():
     assert t.d.get(1) == 'test'
 
 def test_dict_copy():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -132,7 +132,7 @@ def test_dict_copy():
     assert t.d.copy() == t.d
 
 def test_dict_clear():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -147,7 +147,7 @@ def test_dict_clear():
     assert t2.d == {1: 'test', 2: 'test2'}
 
 def test_dict_setitem():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d
@@ -171,7 +171,7 @@ def test_dict_setitem():
 
 
 def test_dict_basic():
-    t = Test()
+    t = MyClass()
 
     d = {1: 'test', 2: 'test2'}
     t.d = d

@@ -4,6 +4,7 @@
   - list
   - [DONE] tuple
   - set
+  - string
  - Un-implement list functions from tuple...
   - Shouldn't be able to do "remove" from tuple, for instance.
  - Integrate tests into Travis
@@ -14,3 +15,6 @@
  - Deal with dict
   - create base class
   - dict methods for update and such need special care
+ - Implement setattr override for base CoW class (propagate back up)
+  - If an object updates in place (i.e.: __setattr__, function calls that update, etc), it needs to notify any object that is interested in this update.
+  - Create method in CoW that will handle this: _flyweight_sync() -- small wrapper to simply call flyweight_cb_func set pointers to notify

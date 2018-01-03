@@ -26,11 +26,6 @@ import weakref
 from copy import copy
 import types
 
-# Import our proxies
-from .Proxy import ProxyStr, ProxyList, ProxyTuple, ProxySet, ProxyDict
-
-# Implementing __copy__ on each Proxy as it's faster than the normal copy method.
-
 def proxify(value):
     """Wrap the value in a proxy shell if need be. Returns the object or the proxy object."""
 
@@ -52,7 +47,7 @@ def proxify(value):
     return value
 
 # Thing to explicitly not try to flyweight
-flyweight_ignored_keys = ["_flyweight_cache","_flyweight_cb_func"]
+flyweight_ignored_keys = ["_flyweight_cache","_flyweight_cb_func","_my_flyweight_cb_func"]
 flyweight_ignored_types = [int, float, type(None), bool]
 
 class CoW(object):
@@ -61,14 +56,21 @@ class CoW(object):
     # dict[<var_type>][__hash__]
     # TODO: pypy doesn't delete right away... might be an issue
     _flyweight_cache = {}
+    
+    def __init__(self, *args, **kwargs):
+        # Jenky.. But i need to keep a hard ref until this object is removed.
+        self._flyweight_cb_func = weakref.WeakSet()
+        self._my_flyweight_cb_func = {}
+        super().__init__()
 
     def __setattr__(self, key, value):
 
-        # Standardize the value up front
-        value = proxify(value)
+        # Don't proxify our ignored keys
+        if key not in flyweight_ignored_keys:
+            value = proxify(value)
 
         # Non-flyweight classes
-        if type(value) in flyweight_ignored_types or value in flyweight_ignored_keys:
+        if type(value) in flyweight_ignored_types or key in flyweight_ignored_keys:
             return super().__setattr__(key, value)
 
         # Make sure the type is in our cache
@@ -100,7 +102,10 @@ class CoW(object):
 
         # Writing callback value so we can be notified if this object updates in place.
         if type(value) in [ProxyList, ProxySet, ProxyDict]:
-            value._flyweight_cb_func = lambda value: self.__setattr__(key, value)
+
+            # Record it so we have a hard pointer
+            self._my_flyweight_cb_func[key] = lambda value: self.__setattr__(key, value)
+            value._flyweight_cb_func.add(self._my_flyweight_cb_func[key])
 
         return value
 
@@ -128,5 +133,17 @@ class CoW(object):
         # If no slots, use vars
         return hash(tuple(vars(self).values()))
 
+    # Extending this for the sake of inheriting CoW
+    def __setitem__(self, *args, **kwargs):
+        # Set it
+        super(type(self), self).__setitem__(*args, **kwargs)
+        # Notify anyone who cares
+        for func in self._flyweight_cb_func:
+            func(self)
+
 class Test(CoW):
     pass
+
+# Import our proxies
+# Implementing __copy__ on each Proxy as it's faster than the normal copy method.
+from .Proxy import ProxyStr, ProxyList, ProxyTuple, ProxySet, ProxyDict

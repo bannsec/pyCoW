@@ -1,12 +1,12 @@
-from pyCoW import *
+from pyCoW import CoW, ProxyStr
 from copy import copy
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
 
 def test_string_basic():
-    t = Test()
+    t = MyClass()
 
     t.s = "test"
     assert t.s == "test"

@@ -1,11 +1,11 @@
-from pyCoW import *
+from pyCoW import CoW, ProxyList
 from copy import copy
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
 def test_list_setitem():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -20,7 +20,7 @@ def test_list_setitem():
     assert t2.l == [1,2,3,4]
 
 def test_list_sort():
-    t = Test()
+    t = MyClass()
 
     t.l = [4,2,3,1]
     assert t.l == [4,2,3,1]
@@ -35,7 +35,7 @@ def test_list_sort():
     assert t2.l == [4,2,3,1]
 
 def test_list_reverse():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -50,7 +50,7 @@ def test_list_reverse():
     assert t2.l == [1,2,3,4]
 
 def test_list_remove():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -65,7 +65,7 @@ def test_list_remove():
     assert t2.l == [1,2,3,4]
 
 def test_list_pop():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -81,7 +81,7 @@ def test_list_pop():
 
 
 def test_list_insert():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -96,7 +96,7 @@ def test_list_insert():
     assert t2.l == [1,2,3,4]
 
 def test_list_extend():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -111,7 +111,7 @@ def test_list_extend():
     assert t2.l == [1,2,3,4]
 
 def test_list_clear():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -134,7 +134,7 @@ def test_list_clear():
 
 
 def test_list_append():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]
@@ -149,7 +149,7 @@ def test_list_append():
     assert t2.l == [1,2,3,4]
 
 def test_list_basic():
-    t = Test()
+    t = MyClass()
 
     t.l = [1,2,3,4]
     assert t.l == [1,2,3,4]

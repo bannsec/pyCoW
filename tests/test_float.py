@@ -1,12 +1,11 @@
 from pyCoW import CoW
 from copy import copy
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
-
 def test_float_basic():
-    t = Test()
+    t = MyClass()
 
     t.i = 12.5
     assert t.i == 12.5

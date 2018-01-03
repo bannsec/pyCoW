@@ -1,12 +1,12 @@
-from pyCoW import *
+from pyCoW import CoW, ProxyTuple
 from copy import copy
 import pytest
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
 def test_tuple_setitem_error():
-    t = Test()
+    t = MyClass()
 
     t.l = (1,2,3,4,1,1)
 
@@ -14,7 +14,7 @@ def test_tuple_setitem_error():
         t.l[0] = 1
 
 def test_tuple_index():
-    t = Test()
+    t = MyClass()
 
     t.l = (1,2,3,4,1,1)
     assert t.l == (1,2,3,4,1,1)
@@ -22,7 +22,7 @@ def test_tuple_index():
     assert t.l.index(4) == 3
 
 def test_tuple_count():
-    t = Test()
+    t = MyClass()
 
     t.l = (1,2,3,4,1,1)
     assert t.l == (1,2,3,4,1,1)
@@ -30,7 +30,7 @@ def test_tuple_count():
     assert t.l.count(1) == 3
 
 def test_tuple_basic():
-    t = Test()
+    t = MyClass()
 
     t.l = (1,2,3,4)
     assert t.l == (1,2,3,4)

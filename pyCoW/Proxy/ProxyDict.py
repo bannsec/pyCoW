@@ -1,28 +1,35 @@
 
 from collections import OrderedDict
 from operator import itemgetter
+import weakref
+from ..CoW import CoW
 
 # Things list class does in-place that we need to watch out for
 proxy_list_inplace = ['clear', 'pop', 'popitem']
 
+"""
 class in_init:
-    """Silly class to handle setting and unsetting self.__in_init bool."""
+    " ""Silly class to handle setting and unsetting self.__in_init bool."" "
     def __init__(self, obj):
         self.obj = obj
     def __enter__(self):
         self.obj._in_init = True
     def __exit__(self, type, value, traceback):
         self.obj._in_init = False
+"""
 
-class ProxyDict(OrderedDict):
+class ProxyDict(OrderedDict, CoW):
     def __init__(self, d):
-        with in_init(self):
-            # If we're already a Proxy Dict, just pass through
-            if type(d) in [ProxyDict, OrderedDict]:
-                return OrderedDict.__init__(self, d)
+        CoW.__init__(self)
 
-            # Sorting this by default to reduce burden on hash
-            super().__init__(sorted(d.items(), key=itemgetter(1)))
+        #with in_init(self):
+            
+        # If we're already a Proxy Dict, just pass through
+        if type(d) in [ProxyDict, OrderedDict]:
+            return OrderedDict.__init__(self, d)
+
+        # Sorting this by default to reduce burden on hash
+        super().__init__(sorted(d.items(), key=itemgetter(1)))
 
     def copy(self):
         """Weirdness in OrderedDict copy... Using mine instead."""
@@ -40,10 +47,9 @@ class ProxyDict(OrderedDict):
         return hash(tuple(self.items()))
 
     def __setitem__(self, *args, **kwargs):
-        super().__setitem__(*args, **kwargs)
-        if not self._in_init:
-            self._flyweight_cb_func(self)
-
+        # Letting CoW get first shot at this
+        return CoW.__setitem__(self, *args, **kwargs)
+    
     def __getattribute__(self, key):
         # If we don't need to proxy this call, just do it.
         if key not in proxy_list_inplace or key in vars(self).keys():

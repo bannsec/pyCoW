@@ -1,12 +1,11 @@
 from pyCoW import CoW
 from copy import copy
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
-
 def test_none_basic():
-    t = Test()
+    t = MyClass()
 
     t.i = None
     assert t.i == None

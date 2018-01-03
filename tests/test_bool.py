@@ -1,12 +1,11 @@
 from pyCoW import CoW
 from copy import copy
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
-
 def test_bool_basic():
-    t = Test()
+    t = MyClass()
 
     t.i = True
     assert t.i == True

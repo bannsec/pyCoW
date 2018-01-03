@@ -1,11 +1,11 @@
-from pyCoW import *
+from pyCoW import CoW, ProxySet
 from copy import copy
 
-class Test(CoW):
+class MyClass(CoW):
     pass
 
 def test_set_symmetric_update():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -20,7 +20,7 @@ def test_set_symmetric_update():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_symmetric_difference_update():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -35,7 +35,7 @@ def test_set_symmetric_difference_update():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_remove():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -50,7 +50,7 @@ def test_set_remove():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_pop():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1])
     assert t.l == set([1])
@@ -66,7 +66,7 @@ def test_set_pop():
 
 
 def test_set_intersection_update():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -81,7 +81,7 @@ def test_set_intersection_update():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_discard():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -96,7 +96,7 @@ def test_set_discard():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_difference_update():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -111,7 +111,7 @@ def test_set_difference_update():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_clear():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -126,7 +126,7 @@ def test_set_clear():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_add():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
@@ -141,7 +141,7 @@ def test_set_add():
     assert len(t._flyweight_cache[ProxySet]) == 2
 
 def test_set_basic():
-    t = Test()
+    t = MyClass()
 
     t.l = set([1,2,3,4])
     assert t.l == set([1,2,3,4])
