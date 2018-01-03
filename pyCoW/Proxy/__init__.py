@@ -15,7 +15,7 @@ def list_do_generic_call(self, method_name, *args, **kwargs):
     ret = getattr(super(my_type, my_copy), method_name)(*args, **kwargs)
 
     # Call our cb function
-    for func in self._flyweight_cb_func:
+    for func in self._flyweight_cb_func.values():
         func(my_copy)
 
     # Return any value that might be returned

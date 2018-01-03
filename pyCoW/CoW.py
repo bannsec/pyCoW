@@ -59,7 +59,7 @@ class CoW(object):
     
     def __init__(self, *args, **kwargs):
         # Jenky.. But i need to keep a hard ref until this object is removed.
-        self._flyweight_cb_func = weakref.WeakSet()
+        self._flyweight_cb_func = weakref.WeakValueDictionary()
         self._my_flyweight_cb_func = {}
         super().__init__()
 
@@ -100,9 +100,13 @@ class CoW(object):
         # Writing callback value so we can be notified if this object updates in place.
         if type(value) in [ProxyList, ProxySet, ProxyDict]:
 
-            # Record it so we have a hard pointer
-            self._my_flyweight_cb_func[key] = lambda value: self.__setattr__(key, value)
-            value._flyweight_cb_func.add(self._my_flyweight_cb_func[key])
+            # Check if I have already registered with this object
+            if id(self) not in value._flyweight_cb_func.keys():
+                # Record it so we have a hard pointer
+                self._my_flyweight_cb_func[id(value)] = lambda value: self.__setattr__(key, value)
+
+                # Tell the object we're interested in it
+                value._flyweight_cb_func[id(self)] = self._my_flyweight_cb_func[id(value)]
 
         return value
 
@@ -139,7 +143,7 @@ class CoW(object):
         super(type(my_copy), my_copy).__setitem__(key, item)
 
         # Notify anyone who cares
-        for func in self._flyweight_cb_func:
+        for func in self._flyweight_cb_func.values():
             func(my_copy)
 
 class Test(CoW):
