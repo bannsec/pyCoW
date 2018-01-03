@@ -12,7 +12,7 @@ class ProxyTuple(ProxyList, CoW):
         return tuple(self) == obj
 
     def __hash__(self):
-        return hash(tuple(self))
+        return super().__hash__()
 
     def __copy__(self):
         return ProxyTuple(self)
