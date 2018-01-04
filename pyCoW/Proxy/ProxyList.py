@@ -24,9 +24,6 @@ class ProxyList(list, CoW):
         if key not in proxy_list_inplace:
             return super().__getattribute__(key)
 
-        # Invalidate our cache
-        self._hash_cache = None
-
         # Proxy this call -- invalidate cache as we will be changing
         return lambda *args, **kwargs: list_do_generic_call(self, key, *args, **kwargs)
 
