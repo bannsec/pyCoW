@@ -22,7 +22,7 @@ class ProxyDict(OrderedDict, CoW):
 
         with in_init(self):
             
-            self.__hash_cache = None
+            self._hash_cache = None
 
             # If we're already a Proxy Dict, just pass through
             if type(d) in [ProxyDict, OrderedDict]:
@@ -44,9 +44,9 @@ class ProxyDict(OrderedDict, CoW):
 
     def __hash__(self):
         # TODO: Verify this actually produces a good hash...
-        if self.__hash_cache is None:
-            self.__hash_cache = hash(tuple(self.items()))
-        return self.__hash_cache
+        if self._hash_cache is None:
+            self._hash_cache = hash(tuple(self.items()))
+        return self._hash_cache
 
     def __setitem__(self, *args, **kwargs):
         if not self._in_init:

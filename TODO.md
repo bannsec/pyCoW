@@ -19,3 +19,5 @@
   - If an object updates in place (i.e.: __setattr__, function calls that update, etc), it needs to notify any object that is interested in this update.
   - Create method in CoW that will handle this: _flyweight_sync() -- small wrapper to simply call flyweight_cb_func set pointers to notify
  - Implement optimization from proxy_function_call to other places
+ - Make hash change test cases
+   - hash([]), hash([].append(1))

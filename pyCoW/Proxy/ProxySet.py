@@ -8,12 +8,12 @@ class ProxySet(set, CoW):
     def __init__(self, *args, **kwargs):
         set.__init__(self, *args, **kwargs)
         CoW.__init__(self, *args, **kwargs)
-        self.__hash_cache = None
+        self._hash_cache = None
 
     def __hash__(self):
-        if self.__hash_cache is None:
-            self.__hash_cache = hash(tuple(self))
-        return self.__hash_cache
+        if self._hash_cache is None:
+            self._hash_cache = hash(tuple(self))
+        return self._hash_cache
 
     def __copy__(self):
         return ProxySet(self)

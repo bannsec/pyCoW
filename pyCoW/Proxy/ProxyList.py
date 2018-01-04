@@ -9,12 +9,12 @@ class ProxyList(list, CoW):
     def __init__(self, *args, **kwargs):
         CoW.__init__(self, *args, **kwargs)
         list.__init__(self, *args, **kwargs)
-        self.__hash_cache = None
+        self._hash_cache = None
 
     def __hash__(self):
-        if self.__hash_cache is None:
-            self.__hash_cache = hash(tuple(self))
-        return self.__hash_cache
+        if self._hash_cache is None:
+            self._hash_cache = hash(tuple(self))
+        return self._hash_cache
 
     def __copy__(self):
         return ProxyList(self)
@@ -24,14 +24,21 @@ class ProxyList(list, CoW):
         if key not in proxy_list_inplace:
             return super().__getattribute__(key)
 
-        # Proxy this call
+        # Invalidate our cache
+        self._hash_cache = None
+
+        # Proxy this call -- invalidate cache as we will be changing
         return lambda *args, **kwargs: list_do_generic_call(self, key, *args, **kwargs)
 
     def __setitem__(self, *args, **kwargs):
+        # Invalidate our cache
+        self._hash_cache = None
         # Letting CoW get first shot at this
         return CoW.__setitem__(self, *args, **kwargs)
 
     def __iadd__(self, *args, **kwargs):
+        # Invalidate our cache
+        self._hash_cache = None
         # Can't overload special methods through getattribute, so just proxying here.
         return list_do_generic_call(self, "__iadd__", *args, **kwargs)
 

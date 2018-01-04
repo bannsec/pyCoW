@@ -22,6 +22,7 @@ def list_do_generic_call(self, method_name, *args, **kwargs):
     else:
         my_copy = self
         my_type = type(self)
+        my_old_hash = hash(self)
 
     # HACK: I need to figure out a proper sloution for this... Tuple __iadd__ (and likely others) causes infinite recursion.
     if my_type is ProxyTuple:
@@ -35,6 +36,17 @@ def list_do_generic_call(self, method_name, *args, **kwargs):
         # Call our cb function
         for func in self._flyweight_cb_func.values():
             func(my_copy)
+    else:
+        # Update the cache with our new value
+
+        # Remove ref to this object since hash changed
+        del CoW._flyweight_cache[type(my_copy)][my_old_hash]
+
+        # Invalidate hash cache if one exists
+        if hasattr(my_copy, "_hash_cache"):
+            my_copy._hash_cache = None
+        # Add new ref
+        CoW._flyweight_cache[type(my_copy)][hash(my_copy)] = my_copy
 
     # Return any value that might be returned
     return ret
@@ -46,3 +58,4 @@ from .ProxyList import ProxyList
 from .ProxyTuple import ProxyTuple
 from .ProxySet import ProxySet
 from .ProxyDict import ProxyDict
+from ..CoW import CoW
