@@ -4,6 +4,36 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_list_setitem_hash():
+    t = MyClass()
+
+    t.l = [1,2,3,4]
+    assert t.l == [1,2,3,4]
+    assert len(t._flyweight_cache[ProxyList]) == 1
+
+    old_hash = hash(t.l)
+    t.l[1] = 5
+    new_hash = hash(t.l)
+
+    assert old_hash != new_hash
+    assert len(t._flyweight_cache[ProxyList]) == 1
+    assert new_hash in t._flyweight_cache[ProxyList]
+
+def test_list_append_hash():
+    t = MyClass()
+
+    t.l = [1,2,3,4]
+    assert t.l == [1,2,3,4]
+    assert len(t._flyweight_cache[ProxyList]) == 1
+
+    old_hash = hash(t.l)
+    t.l.append(5)
+    new_hash = hash(t.l)
+
+    assert old_hash != new_hash
+    assert len(t._flyweight_cache[ProxyList]) == 1
+    assert new_hash in t._flyweight_cache[ProxyList]
+
 def test_list_setitem():
     t = MyClass()
 

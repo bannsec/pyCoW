@@ -4,6 +4,23 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_set_add_hash():
+    t = MyClass()
+
+    t.l = set([1,2,3,4])
+    old_hash = hash(t.l)
+    assert t.l == set([1,2,3,4])
+    assert len(t._flyweight_cache[ProxySet]) == 1
+
+    t.l.add(5)
+    new_hash = hash(t.l)
+
+    assert old_hash != new_hash
+    assert len(t._flyweight_cache[ProxySet]) == 1
+
+    assert new_hash in t._flyweight_cache[ProxySet]
+
+
 def test_set_symmetric_update():
     t = MyClass()
 

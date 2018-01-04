@@ -4,6 +4,40 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_dict_setitem_hash():
+    t = MyClass()
+
+    d = {1: 'test', 2: 'test2'}
+    t.d = d
+    old_hash = hash(t.d)
+
+    assert t.d == d
+    assert len(t._flyweight_cache[ProxyDict]) == 1
+
+    t.d[1] = 'blerg'
+    new_hash = hash(t.d)
+
+    assert old_hash != new_hash
+    assert len(t._flyweight_cache[ProxyDict]) == 1
+    assert new_hash in t._flyweight_cache[ProxyDict]
+
+def test_dict_popitem_hash():
+    t = MyClass()
+
+    d = {1: 'test', 2: 'test2'}
+    t.d = d
+    old_hash = hash(t.d)
+
+    assert t.d == d
+    assert len(t._flyweight_cache[ProxyDict]) == 1
+
+    t.d.popitem()
+    new_hash = hash(t.d)
+
+    assert old_hash != new_hash
+    assert len(t._flyweight_cache[ProxyDict]) == 1
+    assert new_hash in t._flyweight_cache[ProxyDict]
+
 def test_dict_values():
     t = MyClass()
 
