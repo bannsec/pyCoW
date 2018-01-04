@@ -132,7 +132,7 @@ class CoW(object):
             return hash(tuple(self.__slots__))
 
         # If no slots, use vars
-        return hash(tuple(vars(self).values()))
+        return hash(tuple((x,y) for x,y in vars(self).items() if x not in flyweight_ignored_keys))
 
     # Extending this for the sake of inheriting CoW
     def __setitem__(self, key, item):

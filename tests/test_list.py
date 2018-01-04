@@ -4,6 +4,26 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_list_subcow():
+    """Adding a CoW inside the CoW"""
+    t = MyClass()
+
+    t.l = [1,2,3,4]
+    assert t.l == [1,2,3,4]
+    assert len(t._flyweight_cache[ProxyList]) == 1
+    t2 = MyClass()
+    t2.l = [5,6,7,8]
+
+    t.l.append(t2)
+    
+    # Make sure we're copying correctly
+    assert t.l[-1] == t.l[-1]
+    assert t.l[-1] == t2
+
+    # Try appending to it, make sure it gets back up
+    t.l[-1].l.append(9)
+    assert t.l[-1].l == [5,6,7,8,9]
+
 def test_list_setitem_hash():
     t = MyClass()
 
