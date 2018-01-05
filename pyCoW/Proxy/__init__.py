@@ -36,6 +36,7 @@ def list_do_generic_call(self, method_name, *args, **kwargs):
         # Call our cb function
         #for func in self._flyweight_cb_func.values():
         for func in self._flyweight_cb_func:
+            #print("func: ", func)
             func(my_copy)
     else:
         # Update the cache with our new value

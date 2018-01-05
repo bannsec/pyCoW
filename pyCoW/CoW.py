@@ -99,7 +99,7 @@ class CoW(object):
             return value
 
         # Writing callback value so we can be notified if this object updates in place.
-        if type(value) in [ProxyList, ProxySet, ProxyDict]:
+        if issubclass(type(value), CoW):
             self.__cow_add_cb_pointer(value)
 
         return value
@@ -108,7 +108,9 @@ class CoW(object):
         """Register a cb with the object to let us know if it has updated."""
 
         # Check if I have already registered with this object
-        if not any(f for f in obj._flyweight_cb_func if any(f2.cell_contents is self for f2 in f.__closure__)):
+        #if not any(f for f in obj._flyweight_cb_func if any(f2.cell_contents is self for f2 in f.__closure__)):
+        if id(obj) not in self._my_flyweight_cb_func:
+            #print("setting cb", id(self), id(obj))
 
             # Record it so we have a hard pointer
             self._my_flyweight_cb_func[id(obj)] = lambda new_value: self.__cow_update_object(obj, new_value)
@@ -155,6 +157,7 @@ class CoW(object):
 
     def __cow_update_object(self, old, new):
         """Iterates through all attributes and items in current object, replacing any that have the id of the old object with the id of the new object."""
+        #print(id(self), old, new)
 
         # Not using __slots__
         if hasattr(self, "__dict__"):
