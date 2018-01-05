@@ -66,7 +66,6 @@ class CoW(object):
 
     def __setattr__(self, key, value):
 
-        print(self, key, value)
         # Don't proxify our ignored keys
         if key not in flyweight_ignored_keys:
             value = proxify(value)
@@ -101,19 +100,21 @@ class CoW(object):
 
         # Writing callback value so we can be notified if this object updates in place.
         if type(value) in [ProxyList, ProxySet, ProxyDict]:
-
-            # Check if I have already registered with this object
-            #if id(self) not in value._flyweight_cb_func.keys():
-            if not any(f for f in value._flyweight_cb_func if any(f2.cell_contents is self for f2 in f.__closure__)):
-
-                # Record it so we have a hard pointer
-                self._my_flyweight_cb_func[id(value)] = lambda value: self.__setattr__(key, value)
-
-                # Tell the object we're interested in it
-                #value._flyweight_cb_func[id(self)] = self._my_flyweight_cb_func[id(value)]
-                value._flyweight_cb_func.add(self._my_flyweight_cb_func[id(value)])
+            self.__cow_add_cb_pointer(value)
 
         return value
+
+    def __cow_add_cb_pointer(self, obj):
+        """Register a cb with the object to let us know if it has updated."""
+
+        # Check if I have already registered with this object
+        if not any(f for f in obj._flyweight_cb_func if any(f2.cell_contents is self for f2 in f.__closure__)):
+
+            # Record it so we have a hard pointer
+            self._my_flyweight_cb_func[id(obj)] = lambda new_value: self.__cow_update_object(obj, new_value)
+
+            # Tell the object we're interested in it
+            obj._flyweight_cb_func.add(self._my_flyweight_cb_func[id(obj)])
 
     def __copy__(self):
         """Perform fast copy of attribute pointers in self. Note: This assumes that you are not doing anything aside from copying variables in your __init__. Meaning, if you end up creating new custom objects, connecting to databases, etc, this will not work for you. You can override this with your own copy however."""
@@ -151,6 +152,41 @@ class CoW(object):
         #for func in self._flyweight_cb_func.values():
         for func in self._flyweight_cb_func:
             func(my_copy)
+
+    def __cow_update_object(self, old, new):
+        """Iterates through all attributes and items in current object, replacing any that have the id of the old object with the id of the new object."""
+
+        # Not using __slots__
+        if hasattr(self, "__dict__"):
+            for key, value in vars(self).items():
+                if value is old:
+                    setattr(self, key, new)
+        
+        # Using __slots__
+        else:
+            for key in self.__slots__:
+                if getattr(self, key) is old:
+                    setattr(self, key, new)
+
+        # If we expose items, update those too
+        try:
+            for key in self:
+                if self[key] is old:
+                    self[key] = new
+        except:
+            pass
+
+        # Remove any local cb reference we have so gc will get it
+        keys_to_delete = []
+        for key, val in self._my_flyweight_cb_func.items():
+            for cell in val.__closure__:
+                if cell.cell_contents is old:
+                    keys_to_delete.append(key)
+                    break
+
+        # Can't remove during iteration. Do it now.
+        for key in keys_to_delete:
+            del self._my_flyweight_cb_func[key]
 
 class Test(CoW):
     pass
