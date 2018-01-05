@@ -34,7 +34,8 @@ def list_do_generic_call(self, method_name, *args, **kwargs):
     # Only bother calling update if we had to copy
     if copy_required:
         # Call our cb function
-        for func in self._flyweight_cb_func.values():
+        #for func in self._flyweight_cb_func.values():
+        for func in self._flyweight_cb_func:
             func(my_copy)
     else:
         # Update the cache with our new value

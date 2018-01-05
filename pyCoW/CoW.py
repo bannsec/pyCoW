@@ -59,12 +59,14 @@ class CoW(object):
     
     def __init__(self, *args, **kwargs):
         # Jenky.. But i need to keep a hard ref until this object is removed.
-        self._flyweight_cb_func = weakref.WeakValueDictionary()
-        self._my_flyweight_cb_func = {}
+        self._my_flyweight_cb_func = {} # Contains hard ref for my lambda functions I'm setting in other objects
+        #self._flyweight_cb_func = weakref.WeakValueDictionary()
+        self._flyweight_cb_func = weakref.WeakSet() # Contains refs to those functions I should notify when I copy update
         super().__init__()
 
     def __setattr__(self, key, value):
 
+        print(self, key, value)
         # Don't proxify our ignored keys
         if key not in flyweight_ignored_keys:
             value = proxify(value)
@@ -101,12 +103,15 @@ class CoW(object):
         if type(value) in [ProxyList, ProxySet, ProxyDict]:
 
             # Check if I have already registered with this object
-            if id(self) not in value._flyweight_cb_func.keys():
+            #if id(self) not in value._flyweight_cb_func.keys():
+            if not any(f for f in value._flyweight_cb_func if any(f2.cell_contents is self for f2 in f.__closure__)):
+
                 # Record it so we have a hard pointer
                 self._my_flyweight_cb_func[id(value)] = lambda value: self.__setattr__(key, value)
 
                 # Tell the object we're interested in it
-                value._flyweight_cb_func[id(self)] = self._my_flyweight_cb_func[id(value)]
+                #value._flyweight_cb_func[id(self)] = self._my_flyweight_cb_func[id(value)]
+                value._flyweight_cb_func.add(self._my_flyweight_cb_func[id(value)])
 
         return value
 
@@ -143,7 +148,8 @@ class CoW(object):
         super(type(my_copy), my_copy).__setitem__(key, item)
 
         # Notify anyone who cares
-        for func in self._flyweight_cb_func.values():
+        #for func in self._flyweight_cb_func.values():
+        for func in self._flyweight_cb_func:
             func(my_copy)
 
 class Test(CoW):
