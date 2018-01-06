@@ -75,6 +75,25 @@ class CoW(object):
                     continue
                 object.__setattr__(self, key, value)
 
+    def __getitem__(self, key):
+        #print("__getitem__", self, key)
+
+        #value = super(type(self), self).__getitem__(key)
+        # TODO: There's probably a better way to handle this...
+        # Check if we're the top level. If we are, raise exception
+        getitem = super(type(self), self).__getitem__
+        if getitem == self.__getitem__:
+            raise TypeError("'{}' object does not support indexing".format(self.__class__.__name__))
+
+        value = getitem(key)
+        
+        # If this was a single value, add a cb func
+        if type(key) is not slice and issubclass(type(value), CoW):
+            self.__cow_add_cb_pointer(value)
+
+        #print("__getitem__ returning ", value)
+        return value
+
     def __setattr__(self, key, value):
         #print("setattr",self, key, value)
 
@@ -176,7 +195,7 @@ class CoW(object):
 
     def __cow_update_object(self, old, new):
         """Iterates through all attributes and items in current object, replacing any that have the id of the old object with the id of the new object."""
-        #print(id(self), old, new)
+        #print('__cow_update_object', self, old, new)
 
         # Not using __slots__
         if hasattr(self, "__dict__"):
@@ -192,10 +211,26 @@ class CoW(object):
 
         # If we expose items, update those too
         try:
-            for key in self:
-                if self[key] is old:
-                    self[key] = new
-        except:
+
+            # Iterate over list
+            if issubclass(type(self), list):
+                for i, key in enumerate(self):
+                    if key is old:
+                        self[i] = new
+
+            # Iterate over dict
+            elif issubclass(type(self), dict):
+                for key in self:
+                    if self[key] is old:
+                        self[key] = new
+
+            # Iterate over set
+            elif issubclass(type(self), set):
+                if old in self:
+                    self.remove(old)
+                    self.add(new)
+
+        except Exception as e:
             pass
 
         # Remove any local cb reference we have so gc will get it
@@ -209,6 +244,9 @@ class CoW(object):
         # Can't remove during iteration. Do it now.
         for key in keys_to_delete:
             del self._my_flyweight_cb_func[key]
+
+        #print("__cow_update_object outcome: ", self)
+
 
 class Test(CoW):
     pass

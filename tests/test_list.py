@@ -49,6 +49,17 @@ Out[27]: [1, 2, 3]
 
 """
 
+def test_list_sublist_append():
+    t = MyClass()
+
+    t.l = [1,2,3,[4,5,6]]
+    t.l[-1].append(7)
+    assert t.l == [1,2,3,[4,5,6,7]]
+
+    t.l = [1,2,3, [4,5,6,[7,8,9]]]
+    t.l[-1][-1].append(10)
+    assert t.l == [1, 2, 3, [4, 5, 6, [7, 8, 9, 10]]]
+
 def test_list_recursive_types():
     t = MyClass()
 

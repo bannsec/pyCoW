@@ -30,6 +30,12 @@ class ProxyList(list, CoW):
         # Proxy this call -- invalidate cache as we will be changing
         return lambda *args, **kwargs: list_do_generic_call(self, key, *args, **kwargs)
 
+    def __getitem__(self, key):
+        # Proxy to call first, which will come back to our first subclass of list.
+        return CoW.__getitem__(self, key)
+        #return super(list, self).__getitem__(key)
+        #return super(ProxyList, self).__getitem__(key)
+
     def __setitem__(self, *args, **kwargs):
         # Invalidate our cache
         self._hash_cache = None
