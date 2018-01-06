@@ -2,7 +2,7 @@
 from collections import OrderedDict
 from operator import itemgetter
 import weakref
-from ..CoW import CoW
+from ..CoW import CoW, proxify
 
 # Things list class does in-place that we need to watch out for
 proxy_list_inplace = ['clear', 'pop', 'popitem']
@@ -18,6 +18,9 @@ class in_init:
 
 class ProxyDict(OrderedDict, CoW):
     def __init__(self, d):
+        # Recursively proxify first
+        d = {item: proxify(d[item]) for item in d}
+
         CoW.__init__(self)
 
         with in_init(self):
@@ -29,7 +32,9 @@ class ProxyDict(OrderedDict, CoW):
                 return OrderedDict.__init__(self, d)
 
             # Sorting this by default to reduce burden on hash
-            super().__init__(sorted(d.items(), key=itemgetter(1)))
+            #super().__init__(sorted(d.items(), key=itemgetter(1)))
+            super().__init__(d)
+
 
     def copy(self):
         """Weirdness in OrderedDict copy... Using mine instead."""
@@ -45,7 +50,11 @@ class ProxyDict(OrderedDict, CoW):
     def __hash__(self):
         # TODO: Verify this actually produces a good hash...
         if self._hash_cache is None:
-            self._hash_cache = hash(tuple(self.items()))
+            try:
+                self._hash_cache = hash(tuple(self.items()))
+            except:
+                print(self.items())
+                assert False
         return self._hash_cache
 
     def __setitem__(self, *args, **kwargs):

@@ -1,14 +1,17 @@
 
-from ..CoW import CoW
+from ..CoW import CoW, proxify
 
 # Things list class does in-place that we need to watch out for
 proxy_list_inplace = ["append", "clear", "extend", "insert", "pop", "remove", "reverse", "sort"]
 
 class ProxyList(list, CoW):
 
-    def __init__(self, *args, **kwargs):
-        CoW.__init__(self, *args, **kwargs)
-        list.__init__(self, *args, **kwargs)
+    def __init__(self, iterable):
+
+        # Recursively transform into CoW objects
+        proxified = [proxify(item) for item in iterable]
+        CoW.__init__(self, proxified)
+        list.__init__(self, proxified)
         self._hash_cache = None
 
     def __hash__(self):

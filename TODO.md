@@ -16,3 +16,4 @@
   - If an object updates in place (i.e.: __setattr__, function calls that update, etc), it needs to notify any object that is interested in this update.
   - Create method in CoW that will handle this: _flyweight_sync() -- small wrapper to simply call flyweight_cb_func set pointers to notify
  - Implement optimization from proxy_function_call to other places
+ - test_dict_recursive_proxify doesn't back-prop changes from anything other than the first level. need to recursively prop it

@@ -49,6 +49,14 @@ Out[27]: [1, 2, 3]
 
 """
 
+def test_list_recursive_types():
+    t = MyClass()
+
+    d = {1: 'one', 2: 'two'}
+    t.l = [1,2,3,d]
+    assert t.l[:3] == [1,2,3]
+    assert t.l[-1] == d
+
 def test_list_subupdate():
     t = MyClass()
 

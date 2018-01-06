@@ -4,6 +4,17 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_dict_recursive_proxify():
+    t = MyClass()
+
+    # Make complicated dictionary structure
+    d = {1: 'one', 2: 'two'}
+    e = {3: 'three', 4: ['four']}
+    d['e'] = e
+
+    t.d = d
+    assert t.d == {1: 'one', 2: 'two', 'e': {3: 'three', 4: ['four']}}
+
 def test_dict_setitem_hash():
     t = MyClass()
 
