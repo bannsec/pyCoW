@@ -64,7 +64,19 @@ class CoW(object):
         self._flyweight_cb_func = weakref.WeakSet() # Contains refs to those functions I should notify when I copy update
         super().__init__()
 
+        # If we're initing from ourselves, copy over
+        if len(args) >= 1 and type(args[0]) == type(self):
+            obj = args[0]
+            # TODO: Handle slots
+
+            # Using setters here so we auto register callbacks with things relevant
+            for key, value in vars(obj).items():
+                if key in flyweight_ignored_keys:
+                    continue
+                object.__setattr__(self, key, value)
+
     def __setattr__(self, key, value):
+        #print("setattr",self, key, value)
 
         # Don't proxify our ignored keys
         if key not in flyweight_ignored_keys:
@@ -109,25 +121,32 @@ class CoW(object):
 
         # Check if I have already registered with this object
         #if not any(f for f in obj._flyweight_cb_func if any(f2.cell_contents is self for f2 in f.__closure__)):
+        #print("setting cb", self, id(self), id(obj), obj)
         if id(obj) not in self._my_flyweight_cb_func:
-            #print("setting cb", id(self), id(obj))
 
             # Record it so we have a hard pointer
             self._my_flyweight_cb_func[id(obj)] = lambda new_value: self.__cow_update_object(obj, new_value)
 
-            # Tell the object we're interested in it
-            obj._flyweight_cb_func.add(self._my_flyweight_cb_func[id(obj)])
+        # Tell the object we're interested in it
+        #obj._flyweight_cb_func.add(self._my_flyweight_cb_func[id(obj)])
+        # Deciding to only use one cb function at a time. Always set it at get time so we know which obj we're talking about
+        obj._flyweight_cb_func.clear()
+        obj._flyweight_cb_func.add(self._my_flyweight_cb_func[id(obj)])
 
     def __copy__(self):
         """Perform fast copy of attribute pointers in self. Note: This assumes that you are not doing anything aside from copying variables in your __init__. Meaning, if you end up creating new custom objects, connecting to databases, etc, this will not work for you. You can override this with your own copy however."""
 
+        """
         # Create blank object
         obj = self.__new__(type(self))
 
         # Copy over our refs, recursively calling copy
         for key, value in vars(self).items():
             # Since we're coming from CoW object, copy directly instead of doing CoW get/set lookups.
-            super(type(obj),obj).__setattr__(key, value)
+            #super(type(obj),obj).__setattr__(key, value)
+            object.__setattr__(obj, key, value)
+        """
+        obj = type(self)(self)
 
         return obj
 
