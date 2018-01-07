@@ -28,6 +28,10 @@ def list_do_generic_call(self, method_name, *args, **kwargs):
     if my_type is ProxyTuple:
         my_type = ProxyList
 
+    # Proxify the args if we need to
+    args = [proxify(arg) for arg in args]
+    kwargs = {key: proxify(val) for key,val in kwargs.items()}
+
     # Run this call in-place
     ret = getattr(super(my_type, my_copy), method_name)(*args, **kwargs)
 
@@ -60,4 +64,4 @@ from .ProxyList import ProxyList
 from .ProxyTuple import ProxyTuple
 from .ProxySet import ProxySet
 from .ProxyDict import ProxyDict
-from ..CoW import CoW
+from ..CoW import CoW, proxify

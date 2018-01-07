@@ -60,6 +60,13 @@ t.l = l
 t.l[-1][-1][8].append(9) # This doesn't cause update
 """
 
+def test_list_append_non_cow():
+    t = MyClass()
+
+    t.l = [1,2,3]
+    t.l.append([1,2,3])
+    assert t.l == [1,2,3,[1,2,3]]
+
 def test_list_dedup_var_separately():
     t = MyClass()
     t2 = MyClass()
