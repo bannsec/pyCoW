@@ -60,6 +60,12 @@ def test_list_sublist_append():
     t.l[-1][-1].append(10)
     assert t.l == [1, 2, 3, [4, 5, 6, [7, 8, 9, 10]]]
 
+    t2 = copy(t)
+    t2.l[-1][-1].append(11)
+    assert t2.l == [1, 2, 3, [4, 5, 6, [7, 8, 9, 10,11]]]
+    assert t.l == [1, 2, 3, [4, 5, 6, [7, 8, 9, 10]]]
+
+
 def test_list_recursive_types():
     t = MyClass()
 

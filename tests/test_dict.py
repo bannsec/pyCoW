@@ -11,7 +11,6 @@ def test_dict_subdict_append():
     t.l[-1][4] = 'five'
     assert t.l == [1,2,3,{4: 'five'}]
 
-
 def test_dict_recursive_proxify():
     t = MyClass()
 
