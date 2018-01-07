@@ -72,7 +72,7 @@ assert obj2.l == [1,2,3]
 
 One other key thing you can do on `CoW` objects is `copy`. In this case, you can think of `copy` as the python built-in `deepcopy` in that the object you get back should be a complete copy of the object in. The difference is that, since `CoW`'s version of `copy` utilizes aggressive caching and just-in-time copy, it will be substantially faster than `deepcopy` and will also take up much less memory on large objects. Example:
 
-```
+```python
 from copy import copy
 
 obj = MyClass()
