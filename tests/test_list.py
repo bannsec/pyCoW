@@ -49,17 +49,6 @@ Out[27]: [1, 2, 3]
 
 """
 
-"""
-t.l = [1,2,3,[4,5,6]]
-# That should have two cache values, but only has one.
-"""
-
-"""
-l = [1,2,3, [4,5,6, {7: 'seven', 8: ['eight']}]]
-t.l = l
-t.l[-1][-1][8].append(9) # This doesn't cause update
-"""
-
 def test_list_append_non_cow():
     t = MyClass()
 

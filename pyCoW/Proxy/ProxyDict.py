@@ -72,4 +72,8 @@ class ProxyDict(OrderedDict, CoW):
         # Proxy this call
         return lambda *args, **kwargs: list_do_generic_call(self, key, *args, **kwargs)
 
+    def __getitem__(self, key):
+        # Proxy to call first, which will come back to our first subclass of list.
+        return CoW.__getitem__(self, key)
+
 from . import list_do_generic_call

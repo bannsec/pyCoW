@@ -4,6 +4,15 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_dict_nested_getitem_update():
+    t = MyClass()
+
+    l = [1,2,3, [4,5,6, {7: 'seven', 8: ['eight']}]]
+    t.l = l
+    t.l[-1][-1][8].append(9)
+
+    assert t.l == [1,2,3, [4,5,6, {7: 'seven', 8: ['eight', 9]}]]
+
 def test_dict_subdict_append():
     t = MyClass()
 
