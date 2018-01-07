@@ -1,5 +1,6 @@
 from pyCoW import CoW, ProxyDict
 from copy import copy
+import gc
 
 class MyClass(CoW):
     pass
@@ -45,6 +46,9 @@ def test_dict_setitem_hash():
     new_hash = hash(t.d)
 
     assert old_hash != new_hash
+    # Need to force collection for this test
+    t.d._my_flyweight_cb_func = None
+    gc.collect()
     assert len(t._flyweight_cache[ProxyDict]) == 1
     assert new_hash in t._flyweight_cache[ProxyDict]
 
