@@ -49,6 +49,26 @@ Out[27]: [1, 2, 3]
 
 """
 
+"""
+t.l = [1,2,3,[4,5,6]]
+# That should have two cache values, but only has one.
+"""
+
+"""
+l = [1,2,3, [4,5,6, {7: 'seven', 8: ['eight']}]]
+t.l = l
+t.l[-1][-1][8].append(9) # This doesn't cause update
+"""
+
+def test_list_dedup_var_separately():
+    t = MyClass()
+    t2 = MyClass()
+
+    t.l = [1,2,3]
+    t2.l = [1,2,3]
+
+    assert t.l is t2.l
+
 def test_list_sublist_append():
     t = MyClass()
 
