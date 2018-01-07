@@ -4,6 +4,17 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_set_complicated_nested():
+    t = MyClass()
+
+    l = [1,2,3,{4: set([5])}]
+    t.l = l
+    t2 = copy(t)
+    t.l[-1][4].add(6)
+
+    assert t2.l == [1,2,3,{4: set([5])}]
+    assert t.l == [1,2,3,{4: set([5,6])}]
+
 def test_set_add_hash():
     t = MyClass()
 
