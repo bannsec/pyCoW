@@ -48,7 +48,7 @@ def proxify(value):
 
 # Thing to explicitly not try to flyweight
 flyweight_ignored_keys = ["_flyweight_cache","_flyweight_cb_func","_my_flyweight_cb_func"]
-flyweight_ignored_types = [int, float, type(None), bool]
+flyweight_ignored_types = (int, float, type(None), bool) + weakref.ProxyTypes
 
 class CoW(object):
 
