@@ -10,7 +10,7 @@ long_description = "See website for more info."
 dev_tools = ['pytest','python-coveralls','coverage','pytest-cov','pytest-xdist','ipython']
 setup(
     name='pyCoW',
-    version='0.0.3',
+    version='0.0.4',
     description='Copy-On-Write Mixin Base Class.',
     long_description=long_description,
     # The project's main homepage.
