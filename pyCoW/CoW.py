@@ -173,7 +173,10 @@ class CoW(object):
             #super(type(obj),obj).__setattr__(key, value)
             object.__setattr__(obj, key, value)
         """
-        obj = type(self)(self)
+        #obj = type(self)(self)
+
+        obj = type(self).__new__(type(self))
+        CoW.__init__(obj, self)
 
         return obj
 
