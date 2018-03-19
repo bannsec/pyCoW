@@ -49,6 +49,15 @@ Out[27]: [1, 2, 3]
 
 """
 
+def test_list_append_to_copy():
+    t = MyClass()
+
+    t.l = [1,2,3]
+    l = copy(t.l)
+    l.append(4)
+    assert t.l == [1,2,3]
+    assert l == [1,2,3,4]
+
 def test_list_append_non_cow():
     t = MyClass()
 

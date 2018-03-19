@@ -1,9 +1,21 @@
-from pyCoW import CoW, ProxyDict
+from pyCoW import CoW, ProxyDict, ProxySet
 from copy import copy
 import gc
 
 class MyClass(CoW):
     pass
+
+def test_dict_register_on_create():
+    s = ProxyDict({1: 'one'})
+    assert s._flyweight_cache[ProxyDict][hash(s)] is s
+
+def test_dict_setitem_set():
+    t = MyClass()
+
+    t.d = {}
+    t.d[12] = set([1337])
+    assert t.d == {12: set([1337])}
+    assert type(t.d[12]) == ProxySet
 
 def test_dict_nested_getitem_update():
     t = MyClass()

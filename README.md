@@ -86,5 +86,8 @@ In this case, I'm using the `copy` method simply as a convenience wrapper to cal
 ## Variable Types
 Variable types have to be changed for this to work. The change is done automatically for you, and for the most part should be in the background. However, you will notice that the variable type you put in (such as `list`) comes back as a different type (such as `ProxyList`). The type should behave the same as you would expect, but if you use `type(x) == ` checks in your code, you will need to adjust for the proxy versions of those types.
 
+## slots
+If you are utilizing `__slots__` for your objects, you will need to ensure `__weakref__` is listed as a slot, otherwise it will fail due to not being able to weak reference that object.
+
 # Python Versions
 This is being tested against 3.5+. There are known issues at the moment for 3.4, and anything below is untested.

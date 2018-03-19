@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger("CoW:Proxy")
 
 def get_true_reference_count(obj):
     """Returns the true refernce count (that we're interested in) for the object. Useful in decision making of mod in place or not."""
@@ -11,14 +13,20 @@ def get_true_reference_count(obj):
 
 def list_do_generic_call(self, method_name, *args, **kwargs):
     """Runs a call that we know ahead of time will modify the state of this object. I.e.: list.clear()"""
-
     # If only one thing is watching, we don't need to copy
-    copy_required = False if get_true_reference_count(self) == 1 else True
+    copy_required = False if get_true_reference_count(self) <= 1 else True
+
+    logger.debug("list_do_generic_call({},{},{},{})".format(self, method_name, args, kwargs))
+    logger.debug("copy_required = {}".format(copy_required))
 
     if copy_required:
         # Just-in-time copy
         my_copy = copy(self)
         my_type = type(my_copy)
+
+        # Invalidate hash cache if one exists
+        if hasattr(my_copy, "_hash_cache"):
+            my_copy._hash_cache = None
     else:
         my_copy = self
         my_type = type(self)
@@ -40,13 +48,15 @@ def list_do_generic_call(self, method_name, *args, **kwargs):
         # Call our cb function
         #for func in self._flyweight_cb_func.values():
         for func in self._flyweight_cb_func:
-            #print("func: ", func)
             func(my_copy)
     else:
         # Update the cache with our new value
 
         # Remove ref to this object since hash changed
-        del CoW._flyweight_cache[type(my_copy)][my_old_hash]
+        try:
+            del CoW._flyweight_cache[type(my_copy)][my_old_hash]
+        except:
+            pass
 
         # Invalidate hash cache if one exists
         if hasattr(my_copy, "_hash_cache"):

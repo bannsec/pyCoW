@@ -35,6 +35,7 @@ class ProxyDict(OrderedDict, CoW):
             #super().__init__(sorted(d.items(), key=itemgetter(1)))
             super().__init__(d)
 
+        self._flyweight_register_self()
 
     def copy(self):
         """Weirdness in OrderedDict copy... Using mine instead."""
@@ -50,11 +51,7 @@ class ProxyDict(OrderedDict, CoW):
     def __hash__(self):
         # TODO: Verify this actually produces a good hash...
         if self._hash_cache is None:
-            try:
-                self._hash_cache = hash(tuple(self.items()))
-            except:
-                print(self.items())
-                assert False
+            self._hash_cache = hash(tuple(self.items()))
         return self._hash_cache
 
     def __setitem__(self, *args, **kwargs):

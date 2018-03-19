@@ -4,6 +4,10 @@ from copy import copy
 class MyClass(CoW):
     pass
 
+def test_set_register_on_create():
+    s = ProxySet(set([1,2,3]))
+    assert s._flyweight_cache[ProxySet][hash(s)] is s
+
 def test_set_complicated_nested():
     t = MyClass()
 

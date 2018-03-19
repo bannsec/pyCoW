@@ -22,6 +22,9 @@ methods per each class, and instead utilize the duck typing of python to make
 this all transparent.
 """
 
+import logging
+logger = logging.getLogger("CoW")
+
 import weakref
 from copy import copy
 import types
@@ -69,13 +72,41 @@ class CoW(object):
         # If we're initing from ourselves, copy over
         if len(args) >= 1 and type(args[0]) == type(self):
             obj = args[0]
-            # TODO: Handle slots
 
-            # Using setters here so we auto register callbacks with things relevant
-            for key, value in vars(obj).items():
-                if key in flyweight_ignored_keys:
-                    continue
-                object.__setattr__(self, key, value)
+            # Basic variables
+            if hasattr(obj, "__dict__"):
+                # Using setters here so we auto register callbacks with things relevant
+                for key, value in vars(obj).items():
+                    if key in flyweight_ignored_keys:
+                        continue
+
+                    # Standardize private vars
+                    if key.startswith("__") and not key.endswith("__"):
+                        key = key.replace("__","_{}__".format(self.__class__.__name__),1)
+
+                    # If value is not CoW subclass, it likely won't handle CoW correctly. Strait up copy it
+                    if not issubclass(type(value), CoW):
+                        value = copy(value)
+
+                    object.__setattr__(self, key, value)
+
+            # Slot variables
+            if hasattr(obj, "__slots__"):
+                # Using setters here so we auto register callbacks with things relevant
+                for key in obj.__slots__:
+                    if key in flyweight_ignored_keys:
+                        continue
+
+                    # Standardize private vars
+                    if key.startswith("__") and not key.endswith("__"):
+                        key = key.replace("__","_{}__".format(self.__class__.__name__),1)
+
+                    value = getattr(obj, key)
+                    # If value is not CoW subclass, it likely won't handle CoW correctly. Strait up copy it
+                    if not issubclass(type(value), CoW):
+                        value = copy(value)
+
+                    object.__setattr__(self, key, value)
 
     def __getitem__(self, key):
         #print("__getitem__", self, key)
@@ -91,13 +122,13 @@ class CoW(object):
         
         # If this was a single value, add a cb func
         if type(key) is not slice and issubclass(type(value), CoW):
-            self.__cow_add_cb_pointer(value)
+            self.__cow_add_cb_pointer(value, key=key, key_type='item')
 
         #print("__getitem__ returning ", value)
         return value
 
     def __setattr__(self, key, value):
-        #print("setattr",self, key, value)
+        logger.debug("CoW:setattr({},{},{})".format(self, key, value))
 
         # Don't proxify our ignored keys
         if key not in flyweight_ignored_keys:
@@ -106,6 +137,10 @@ class CoW(object):
         # Non-flyweight classes
         if type(value) in flyweight_ignored_types or key in flyweight_ignored_keys:
             return super().__setattr__(key, value)
+
+        # If this is a private attribute, adjust
+        if key.startswith("__") and not key.endswith("__"):
+            key = key.replace("__","_{}__".format(self.__class__.__name__),1)
 
         # Make sure the type is in our cache
         if type(value) not in self._flyweight_cache.keys():
@@ -123,6 +158,10 @@ class CoW(object):
         return super().__setattr__(key, value)
 
     def __getattribute__(self, key):
+        # If this is a private attribute, adjust
+        if key.startswith("__") and not key.endswith("__"):
+            key = key.replace("__","_{}__".format(self.__class__.__name__),1)
+
         # Grab the value
         value = super().__getattribute__(key)
 
@@ -133,11 +172,11 @@ class CoW(object):
 
         # Writing callback value so we can be notified if this object updates in place.
         if issubclass(type(value), CoW):
-            self.__cow_add_cb_pointer(value)
+            self.__cow_add_cb_pointer(value, key=key, key_type='attribute')
 
         return value
 
-    def __cow_add_cb_pointer(self, obj):
+    def __cow_add_cb_pointer(self, obj, key, key_type):
         """Register a cb with the object to let us know if it has updated."""
 
         # Check if I have already registered with this object
@@ -151,7 +190,7 @@ class CoW(object):
         """
 
         # Record it so it doesn't disappear
-        self._my_flyweight_cb_func = lambda new_value: self.__cow_update_object(obj, new_value)
+        self._my_flyweight_cb_func = lambda new_value: self.__cow_update_object(old=obj, new=new_value, key=key, key_type=key_type)
 
         # Tell the object we're interested in it
         #obj._flyweight_cb_func.add(self._my_flyweight_cb_func[id(obj)])
@@ -193,6 +232,10 @@ class CoW(object):
 
     # Extending this for the sake of inheriting CoW
     def __setitem__(self, key, item):
+        # Proxy types that we have autoproxy for
+        if type(item) in [list, dict, set, tuple]:
+            item = proxify(item)
+
         # Just-in-time copy
         my_copy = copy(self)
 
@@ -204,45 +247,75 @@ class CoW(object):
         for func in self._flyweight_cb_func:
             func(my_copy)
 
-    def __cow_update_object(self, old, new):
-        """Iterates through all attributes and items in current object, replacing any that have the id of the old object with the id of the new object."""
-        #print('__cow_update_object', self, old, new)
-
-        # Not using __slots__
-        if hasattr(self, "__dict__"):
-            for key, value in vars(self).items():
-                if value is old:
-                    setattr(self, key, new)
+    def __cow_update_object(self, old, new, key, key_type):
+        """Iterates through all attributes and items in current object, replacing any that have the id of the old object with the id of the new object.
         
-        # Using __slots__
-        else:
-            for key in self.__slots__:
-                if getattr(self, key) is old:
-                    setattr(self, key, new)
+        Args:
+            old: The old obj to replace
+            new: The new object to replace it with
+            key: The name of the attribute or item (or None if this is a Set)
+            key_type: The type (i.e.: "attribute", "item")
+        """
+        logging.debug('CoW.__cow_update_object({},{},{},{},{})'.format(self, old, new, key, key_type))
 
-        # If we expose items, update those too
-        try:
+        key_type = key_type.lower()
+        assert key_type in ["attribute", "item"]
+
+        if key_type == "attribute":
+
+            if hasattr(self, key):
+                #assert getattr(self, key) is old
+                setattr(self, key, new)
+
+            """
+            # TODO: Optimize this so i'm not scanning every time
+            # Not using __slots__
+            if hasattr(self, "__dict__"):
+                for new_key, new_value in vars(self).items():
+                    if new_key != key:
+                        continue
+
+                    assert new_value is old:
+                    setattr(self, new_key, new)
+            
+            # Using __slots__
+            if hasattr(self, "__slots__"):
+                for key in self.__slots__:
+                    if getattr(self, key) is old:
+                        setattr(self, key, new)
+            """
+
+        else:
+            # If we expose items, update those too
+            #try:
 
             # Iterate over list
-            if issubclass(type(self), list):
+            if issubclass(type(self), (list, dict)):
+                value = self[key]
+                #assert value is old
+                self[key] = new
+                """
                 for i, key in enumerate(self):
                     if key is old:
                         self[i] = new
+                """
 
+            # Iterate over set
+            elif issubclass(type(self), set):
+                #assert old in self
+                self.remove(old)
+                self.add(new)
+
+            """
             # Iterate over dict
             elif issubclass(type(self), dict):
                 for key in self:
                     if self[key] is old:
                         self[key] = new
+            """
 
-            # Iterate over set
-            elif issubclass(type(self), set):
-                if old in self:
-                    self.remove(old)
-                    self.add(new)
-
-        except Exception as e:
-            pass
+            #except Exception as e:
+            #    pass
         
         """
         # Remove any local cb reference we have so gc will get it
@@ -258,6 +331,18 @@ class CoW(object):
             del self._my_flyweight_cb_func[key]
         """
         #print("__cow_update_object outcome: ", self)
+
+    def _flyweight_register_self(self):
+        """Makes sure our object is registered in the cache."""
+
+        # Make sure the type is in our cache
+        if type(self) not in self._flyweight_cache.keys():
+            self._flyweight_cache[type(self)] = weakref.WeakValueDictionary()
+
+        my_hash = hash(self)
+
+        if my_hash not in self._flyweight_cache[type(self)].keys():
+            self._flyweight_cache[type(self)][my_hash] = self
 
 
 class Test(CoW):

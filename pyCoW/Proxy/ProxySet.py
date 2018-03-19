@@ -10,6 +10,8 @@ class ProxySet(set, CoW):
         CoW.__init__(self, *args, **kwargs)
         self._hash_cache = None
 
+        self._flyweight_register_self()
+
     def __hash__(self):
         if self._hash_cache is None:
             self._hash_cache = hash(tuple(self))
